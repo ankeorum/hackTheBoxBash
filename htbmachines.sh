@@ -28,6 +28,7 @@ function helpPanel(){
   echo -e "\t${purpleColour}-y:${endColour} \t${grayColour}Buscar link de youtube${endColour}"
   echo -e "\t${purpleColour}-d:${endColour} \t${grayColour}Buscar según dificultad de la máquina${endColour}"
   echo -e "\t${purpleColour}-o:${endColour} \t${grayColour}Buscar por sistema operativo${endColour}"
+  echo -e "\t${purpleColour}-s:${endColour} \t${grayColour}Buscar por skill${endColour}"
   echo -e "\t${purpleColour}-i:${endColour} \t${grayColour}Buscar por dirección IP${endColour}"
   echo -e "\t${purpleColour}-h:${endColour} \t${grayColour}Mostrar este panel de ayuda${endColour}\n"
   # echo -e "\n\n${yellowColour}[+]${endColour} ${grayColour}Uso:${endColour}\n"
@@ -135,6 +136,18 @@ function searchYoutube(){
       echo -e "${redColour}[!]${endColour} \t${grayColour}No hemos encontrado ninguna máquina los criterios indicado${endColour}\n"
     fi 
   }
+
+  function getSkillsMachine(){
+    skill="$1"
+
+    results_check="$(cat bundle.js | grep "skills: " -B 6 | grep "$skill" -i -B 6 | grep "name: " | awk 'NF{print $NF}' | tr -d '"' | tr -d ',' | column)"
+    if [ "$results_check" ]; then
+      echo -e "\n${yellowColour}[+]${endColour}${grayColour} Las máquinas con la skill:${endColour}${blueColour} $skill${endColour}${grayColour} que hemos encontrado son las siguientes\n${endColour}"
+      cat bundle.js | grep "skills: " -B 6 | grep "$skill" -i -B 6 | grep "name: " | awk 'NF{print $NF}' | tr -d '"' | tr -d ',' | column
+    else
+      echo -e "${redColour}[!]${endColour} \t${grayColour}No hemos encontrado ninguna máquina con la skill indicada${endColour}\n"     
+    fi
+  }
 #Indicadores
 declare -i parameter_counter=0
 
@@ -142,7 +155,7 @@ declare -i parameter_counter=0
 declare -i chivato_difficulty=0
 declare -i chivato_os=0
 
-while getopts "m:ui:y:d:o:h" arg; do
+while getopts "m:ui:y:d:o:s:h" arg; do
   case $arg in
     m) machineName=$OPTARG; let parameter_counter+=1;;
     u) let parameter_counter+=2;;
@@ -150,6 +163,7 @@ while getopts "m:ui:y:d:o:h" arg; do
     y) machineNameYt=$OPTARG; let parameter_counter+=4;;
     d) difficulty=$OPTARG; chivato_difficulty=1; let parameter_counter+=5;;
     o) os=$OPTARG; chivato_os=1; let parameter_counter+=6;;
+    s) skill=$OPTARG; let parameter_counter+=7;;
     h) ;;
   esac
 done
@@ -166,6 +180,8 @@ elif [ $parameter_counter -eq 5 ]; then
   getMachinesDifficulty $difficulty
 elif [ $parameter_counter -eq 6 ]; then
   getOsMachines $os
+elif [ $parameter_counter -eq 7 ]; then
+  getSkillsMachine "$skill"
 elif [ $chivato_difficulty -eq 1 ] && [ $chivato_os -eq 1 ]; then
   getOsDifficultyMachines $difficulty $os
 else
